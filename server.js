@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const fileupload = require('express-fileupload');
 
+const apiRoutes = require('./src/routes')
+
 mongoose.connect(process.env.DATABASE, async (err) => {
     if (err) throw err.message;
     console.log(`- Database connected on ${process.env.DATABASE}`);
@@ -24,9 +26,7 @@ server.use(fileupload());
 
 server.use(express.static(__dirname+'/public'));
 
-server.get('/ping', (req, res) => {
-    res.json({ pong: true });
-});
+server.use('/', apiRoutes)
 
 server.listen(process.env.PORT, () => {
     console.log(`Rodando no endereço ${process.env.BASE}`)
