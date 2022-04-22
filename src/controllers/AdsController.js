@@ -77,7 +77,8 @@ module.exports = {
         };
 
         const info = await newAd.save();
-        res.json=({id: info._id});
+
+        res.json({id: info._id});
     },
     getList: async (req, res) => {
         
