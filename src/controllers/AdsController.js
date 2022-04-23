@@ -157,7 +157,7 @@ module.exports = {
         }
 
         const ad = await Ad.findById(id);
-        console.log(ad)
+
         if(!ad) {
             res.json({error: 'Produto inexistente'});
             return
@@ -201,7 +201,7 @@ module.exports = {
                 };
             };
         };
-        
+
         res.json({
             id: ad._id,
             title: ad.tile,
@@ -221,6 +221,93 @@ module.exports = {
         });
     },
     editAction: async (req, res) => {
-        
+        let { id } = req.params;
+        let { title, status, price, priceneg, desc, cat, images, token } = req.body;;
+
+        if(!mongoose.Types.ObjectId.isValid(id)) {
+            res.json({error: 'ID Inválido'});
+            return;
+        };
+
+        const ad = await Ad.findById(id).exec();
+
+        if(!ad) {
+            res.json({error: 'Anúncio inexistente'});
+            return;
+        };
+
+        const user = await User.findOne({token}).exec();
+
+        if(user._id.toString !== ad.idUser) {
+            res.json({error: 'Este anúncio não é seu!'});
+            return;
+        };
+
+        let updates = {};
+
+        if(title) {
+            updates.title = title;
+        };
+
+        if(price) {
+            price = parseFloat(price.replace('.', '').replace(',', '.').replace('R$', ''));
+            updates.price = price;
+        };
+
+        if(priceneg) {
+            updates.priceNegotiable = priceneg;
+        };
+
+        if(status) {
+            updates.status = status;
+        };
+
+        if(desc) {
+            updates.description = desc
+        };
+
+        if(cat) {
+            const category = await Category.findOne({slug: cat}).exec();
+            if(!category) {
+                res.json({error: 'Categoria inexistente'});
+                return;
+            };
+            updates.category = category.slug
+        };
+
+        if(images) {
+            updates.images = images;
+        };
+
+        await Ad.findByIdAndUpdate(id, {$set: updates});
+
+        if(req.files && req.files.img) {
+            const adImg = await Ad.findById(id);
+
+            if(req.files.img.length == undefined) {
+                if(['image/jpeg', 'image/jpg', 'image/png'].includes(req.files.img.mimetype)) {
+                    let url = await addImage(req.files.img.data);
+                    newAd.images.push({
+                        url,
+                        default: false
+                    });
+                };
+            } else {
+                for(let i=0; i < req.files.img.length; i++) {
+                    if(['image/jpeg', 'image/jpg', 'image/png'].includes(req.files.img[i].mimetype)) {
+                        let url = await addImage(req.files.img[i].data);
+                        newAd.images.push({
+                            url,
+                            default: false
+                        });
+                    };
+                };
+            };
+
+            adImg.images = [...adImg.images];
+            await adImg.save();
+        };
+
+        res.json({error: ''});
     }
 };
