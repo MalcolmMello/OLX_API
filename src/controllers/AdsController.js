@@ -39,11 +39,22 @@ module.exports = {
             return;
         };
 
+        if(!mongoose.Types.ObjectId.isValid(cat)) {
+            res.json({error: 'Categoria Inexistente'});
+            return;
+        };
+
+        const category = await Category.findById(cat);
+
+        if(!category) {
+            res.json({error: 'Categoria Inexistente'});
+        };
+
         if(price) {
             price = parseFloat(price.replace('.', '').replace(',', '.').replace('R$', ''));
         } else {
             price = 0;
-        }
+        };
 
         const newAd = new Ad();
         newAd.status = true;
@@ -154,7 +165,7 @@ module.exports = {
         if(!mongoose.Types.ObjectId.isValid(id)) {
             res.json({error: 'ID Inválido'})
             return
-        }
+        };
 
         const ad = await Ad.findById(id);
 
